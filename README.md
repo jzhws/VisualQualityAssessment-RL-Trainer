@@ -1,5 +1,5 @@
 # VisualQualityAssessment-RL-Trainer
-Official released code for Refine-IQA (support vllm training-about 3× faster)
+Official released code for Refine-IQA (support vllm training-about ×3 faster)
 
 ## Release News
 - 🔥[2025/8/15] We have released the training code for Refine-IQA (support vllm)！
@@ -38,7 +38,7 @@ Change the trainer_cls in src/open-r1/grpo.py line 448 for your need:
 
 **Qwen2VLGRPOTrainer**: Standard rule-based training
 
-**Qwen2VLGRPOVLLMTrainer**: Standard rule-based training in vllm (3× faster)
+**Qwen2VLGRPOVLLMTrainer**: Standard rule-based training in vllm (×3 faster)
 
 **Qwen2VLGRPOTrainer_Refine**: The training strategy used in Refine-IQA .
 
