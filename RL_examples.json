@@ -1,0 +1,15 @@
+[
+    {
+        "video": "yfcc-batch1/653.mp4",
+        "solution": 5.0,
+        "question": "What is your overall rating on the quality of this video? The rating should be a float between 1 and 5, rounded to two decimal places, with 1 representing very poor quality and 5 representing excellent quality.",
+        "type": "scoring_video"
+    },
+    {
+
+        "image": "koniq/10004473376.jpg",
+        "solution": 4.400806947958697,
+        "question": "What is your overall rating on the quality of this picture? The rating should be a float between 1 and 5, rounded to two decimal places, with 1 representing very poor quality and 5 representing excellent quality.",
+        "type": "scoring_image"
+    }
+]
