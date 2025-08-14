@@ -35,8 +35,11 @@ pip install -r requirements_VLLM.txt
 
 ## Train your own visual quality assessment model:
 Change the trainer_cls in src/open-r1/grpo.py line 448 for your need:
+
 **Qwen2VLGRPOTrainer**: Standard rule-based training
+
 **Qwen2VLGRPOVLLMTrainer**: Standard rule-based training in vllm (3× faster)
+
 **Qwen2VLGRPOTrainer_Refine**: The training strategy used in Refine-IQA .
 
 Modify the args in **finetune_RL.sh(for standard rule-based training and refine-iqa training)** and **finetune_RL_vllm.sh(for vllm-involved training)**
