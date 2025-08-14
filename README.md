@@ -48,7 +48,7 @@ cd VisualQualityAssessment-RL
 conda create -n GRPO-VLLM python=3.10 -y
 conda activate GRPO-VLLM
 pip install -r requirements_VLLM.txt
-**Fix：[2025.08.05] To avoid default device inconsistency, please replace the file ``/conda/envs/GRPO-VLLM/lib/python3.10/site-packages/xformers/ops/fmha/__init__.py to
+**Fix：[2025.08.05] To avoid default device inconsistency, please replace the file **/conda/envs/GRPO-VLLM/lib/python3.10/site-packages/xformers/ops/fmha/__init__.py** to **xformer_replacement/__init__.py**.
 ```
 
 ## 🔎Train your own visual quality assessment model:
