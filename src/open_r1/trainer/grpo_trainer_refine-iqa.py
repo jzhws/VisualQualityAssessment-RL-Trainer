@@ -589,7 +589,7 @@ class Qwen2VLGRPOTrainer_Refine(Trainer):
             add_special_tokens=False,
         )
         prompt_inputs_no_think_ref = self.processing_class(
-            text=[prompts_text1 [0]+f"<answer>Score: {str(inputs[0]['solution']['answer'])[:3]}</answer>"], 
+            text=[prompts_text1 [0]+f"<answer>Score: {str(inputs[0]['solution']['answer'])[:4]}</answer>"], 
             images=image_inputs, 
             videos=video_inputs, 
             video_motion=video_motion,
