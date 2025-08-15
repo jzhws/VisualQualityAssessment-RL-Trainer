@@ -443,10 +443,10 @@ class Qwen2VLGRPOTrainer_Refine(Trainer):
             pos=[]
             count=0
             for num,i in enumerate(range(len(lst)-1, -1, -1)):
-                if lst[i] in target and count<2:
+                if lst[i] in target and count<3:
                     count+=1
                     pos.append(len(lst)-1-num)
-                if count==2:
+                if count==3:
                     return pos
             return -1  # 如果没有找到目标元素
         logits = model(input_ids, attention_mask=attention_mask, pixel_values_videos=pixel_values_videos, video_grid_thw=video_grid_thw).logits # (B, L, V)
@@ -599,7 +599,7 @@ class Qwen2VLGRPOTrainer_Refine(Trainer):
             padding_side="right", 
             add_special_tokens=False,
         )
-        ref_probability=1-abs((int(str(inputs[0]['solution']['answer'])[2])-5)*0.1)
+        # ref_probability=1-abs((int(str(inputs[0]['solution']['answer'])[2])-5)*0.1)
         # print(ref_probability)
         prompt_inputs_no_think = self.processing_class(
             text=[prompts_text1[0]], 
@@ -661,10 +661,10 @@ class Qwen2VLGRPOTrainer_Refine(Trainer):
                 pos=[]
                 count=0
                 for num,i in enumerate(range(len(lst)-1, -1, -1)):
-                    if lst[i] in target and count<2:
+                    if lst[i] in target and count<3:
                         count+=1
                         pos.append(len(lst)-1-num)
-                    if count==2:
+                    if count==3:
                         return pos
       
         prompt_completions_modified_ids=copy.deepcopy(prompt_completion_ids)
@@ -673,7 +673,7 @@ class Qwen2VLGRPOTrainer_Refine(Trainer):
             num_quality_pos1=find_last_element(prompt_completion_ids[num],[15,16,17,18,19,20,21,22,23,24])
            
             num_quality_pos_no_think=find_last_element(prompt_inputs_no_think_ref["input_ids"][0],[15,16,17,18,19,20,21,22,23,24])
-            for num1 in range(2):  
+            for num1 in range(3):  
                 prompt_completions_modified_ids[num][num_quality_pos[num1]]=prompt_inputs_no_think_ref["input_ids"][0][num_quality_pos_no_think[num1]]
                 # print([prompt_completions_modified_ids[num][num_quality_pos[2]],prompt_completion_ids[num][num_quality_pos[2]]])
         is_eos = completion_ids == self.processing_class.eos_token_id
@@ -688,26 +688,15 @@ class Qwen2VLGRPOTrainer_Refine(Trainer):
         # try:
         pixel_values_videos = [prompt_inputs["pixel_values_videos"][0].repeat(self.num_generations, 1),prompt_inputs["pixel_values_videos"][1].repeat(self.num_generations, 1,1,1)]
         video_grid_thw = prompt_inputs["video_grid_thw"].repeat_interleave(self.num_generations, dim=0)
-        think_rewards=self.get_incentivizing_reward(model, prompt_completions_modified_ids, attention_mask, pixel_values_videos, video_grid_thw)
-        # with unwrap_model_for_generation(model, self.accelerator) as unwrapped_model:
-        #     # print("123")
-        #     prompt_completion_ids_no_think = unwrapped_model.generate(**prompt_inputs_no_think, generation_config=self.generation_config)
-           
-        #     prompt_length_no_think = prompt_ids_no_think.size(1)
-        #     prompt_ids_no_think = prompt_completion_ids_no_think[:, :prompt_length_no_think]
-        #     completion_ids_no_think = prompt_completion_ids_no_think[:, prompt_length_no_think:]
-        #     prompt_mask_no_think = prompt_mask_no_think.repeat_interleave(self.num_generations, dim=0)
-        # prompt_completions = self.processing_class.batch_decode(prompt_completion_ids, skip_special_tokens=True)
-        # print(prompt_completions)
+
+
       
         prompt_completions_modified_ids_no_think=copy.deepcopy(prompt_completion_ids_no_think)
         for num in range(prompt_completions_modified_ids_no_think.shape[0]):
             num_quality_pos=find_last_element(prompt_completions_modified_ids_no_think[num],[15,16,17,18,19,20,21,22,23,24])
             num_quality_pos_no_think=find_last_element(prompt_inputs_no_think_ref["input_ids"][0],[15,16,17,18,19,20,21,22,23,24])
-            # print(prompt_completions_modified_ids_no_think[num].shape[0])
-            # print(prompt_completions_modified_ids_no_think[num][-20])
-            # print(num_quality_pos)
-            for num1 in range(2):  
+
+            for num1 in range(3):  
                 prompt_completions_modified_ids_no_think[num][num_quality_pos[num1]]=prompt_inputs_no_think_ref["input_ids"][0][num_quality_pos_no_think[num1]]
         is_eos = completion_ids_no_think == self.processing_class.eos_token_id
         device = self.accelerator.device
@@ -773,8 +762,6 @@ class Qwen2VLGRPOTrainer_Refine(Trainer):
                 reward_kwargs = {key: [] for key in inputs[0].keys() if key not in ["prompt", "completion"]}
                 for key in reward_kwargs:
                     for example in inputs:
-                        # print(example["solution"])
-                        # Repeat each value in the column for `num_generations` times
                         reward_kwargs[key].extend([example[key]] * self.num_generations)
                 output_reward_func = reward_func(prompts=prompts, completions=completions, **reward_kwargs)
                 rewards_per_func[:, i] = torch.tensor(output_reward_func, dtype=torch.float32, device=device)
@@ -800,28 +787,16 @@ class Qwen2VLGRPOTrainer_Refine(Trainer):
                 reward_kwargs = {key: [] for key in inputs[0].keys() if key not in ["prompt", "completion"]}
                 for key in reward_kwargs:
                     for example in inputs:
-                        # print(example["solution"])
-                        # Repeat each value in the column for `num_generations` times
                         reward_kwargs[key].extend([example[key]] * self.num_generations)
                 output_reward_func = reward_func(prompts=prompts, completions=completions_no_think, **reward_kwargs)
                 rewards_per_func_no_think[:, i] = torch.tensor(output_reward_func, dtype=torch.float32, device=device)
-        # rlpr_rewards1=torch.clamp(torch.abs(torch.cat(no_think_rewards)-ref_probability)-torch.abs(torch.cat(think_rewards)-ref_probability),0,0.1)
-        rlpr_rewards1=torch.clamp(torch.cat(think_rewards)-torch.cat(no_think_rewards),0,0.1)
-        # rewards_per_func[:,0]=rewards_per_func[:,0]*torch.tensor(rlpr_rewards1>0)
-        # rewards_per_func[:,0]=rewards_per_func[:,0]*torch.tensor(rlpr_rewards1>0)
+
+        pd_rewards=torch.clamp(torch.cat(think_rewards)-torch.cat(no_think_rewards),0,1)
+
         rewards = rewards_per_func.sum(dim=1)
         
-        # no_think_rewards=self.get_incentivizing_reward(model, prompt_inputs_no_think["input_ids"].repeat_interleave(self.num_generations, dim=0), prompt_inputs_no_think["attention_mask"].repeat_interleave(self.num_generations, dim=0), pixel_values_videos, video_grid_thw)
-      
-        # rlpr_rewards1=torch.clamp(torch.cat(think_rewards)-torch.cat(no_think_rewards),0,0.1)
-        # rlpr_rewards1=torch.clamp(torch.abs(torch.cat(no_think_rewards)-ref_probability)-torch.abs(torch.cat(think_rewards)-ref_probability),0,0.1)
-        # rewards_per_func[]=rewards_per_func[]
-        # rlpr_rewards=torch.clamp(torch.cat(think_rewards)-torch.cat(no_think_rewards),0,1)
-        # print(rlpr_rewards)
-        # rewards=rewards+rlpr_rewards1*(rewards//2)*(1-(rewards.sum(dim=0)//12))
-        # rewards=rewards*(rlpr_rewards1//0.05)
-        # rewards=rewards
-        rewards=rewards+rlpr_rewards1*(rewards//2)
+
+        rewards=rewards+pd_rewards*(rewards//2)
       
         mean_grouped_rewards = rewards.view(-1, self.num_generations).mean(dim=1)
         std_grouped_rewards = rewards.view(-1, self.num_generations).std(dim=1)
@@ -832,19 +807,17 @@ class Qwen2VLGRPOTrainer_Refine(Trainer):
         # if not all([rewards[num]==0 for num in range(rewards.shape[0])]):
         # advantages = (rewards - mean_grouped_rewards) / (std_grouped_rewards + 1e-4)
         # print(rewards)
-        # if not all([rewards[num]<2 for num in range(rewards.shape[0])]):
-        #     # for num in range(rewards.shape[0]):
-        #     #     if rewards[num]>2:
-        #     #         rewards[num]=2.2
-        #     advantages = (rewards - mean_grouped_rewards) / (std_grouped_rewards + 1e-4)
-        #     for num in range(advantages.shape[0]):
-        #         if advantages[num]<=0:
-        #             advantages[num]=0
-                
-        # else:
-        #     advantages = (rewards - mean_grouped_rewards-0.2*1e-4) / (std_grouped_rewards + 1e-4)
-       
-        advantages = (rewards - mean_grouped_rewards) / (std_grouped_rewards + 1e-4)
+        #Gradient policy modification
+        if not all([rewards[num]<2 for num in range(rewards.shape[0])]):
+            advantages = (rewards - mean_grouped_rewards) / (std_grouped_rewards + 1e-4)
+            for num in range(advantages.shape[0]):
+                if advantages[num]<=0:
+                    advantages[num]=0
+
+        else:
+            advantages = (rewards - mean_grouped_rewards-0.2*1e-4) / (std_grouped_rewards + 1e-4)
+        # Standard GRPO
+        # advantages = (rewards - mean_grouped_rewards) / (std_grouped_rewards + 1e-4)
 
         per_token_loss = torch.exp(per_token_logps - per_token_logps.detach()) * advantages.unsqueeze(1)
         per_token_loss = -(per_token_loss - self.beta * per_token_kl)
