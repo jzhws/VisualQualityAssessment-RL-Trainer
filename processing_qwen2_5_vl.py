@@ -134,7 +134,7 @@ class Qwen2_5_VLProcessor(ProcessorMixin):
             image_grid_thw = image_inputs["image_grid_thw"]
             print(image_grid_thw.shape)
             videos_inputs = {}
-            videos_inputs.update({"second_per_grid_ts": [1.0,1.0]})
+            videos_inputs.update({"second_per_grid_ts": [1.0]*len(image_grid_thw)})
             videos_inputs.update({"pixel_values_videos": image_inputs["pixel_values"]})
             videos_inputs.update({"video_grid_thw": image_inputs["image_grid_thw"]})
             video_grid_thw=image_grid_thw
